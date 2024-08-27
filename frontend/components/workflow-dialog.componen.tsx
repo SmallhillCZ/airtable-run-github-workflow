@@ -4,7 +4,6 @@ import { runWorkflow, useGithub, useGithubWorkflowInputs } from "../github";
 import { useSettings } from "../settings";
 
 export function WorkFlowDialogComponent({ onClose, workflow }: { onClose: () => void; workflow: any | null }) {
-  const workflowInputs = useGithubWorkflowInputs(workflow?.path);
   const repoInfo = useGithub(``);
   const branches = useGithub(`branches`);
 
@@ -18,6 +17,8 @@ export function WorkFlowDialogComponent({ onClose, workflow }: { onClose: () => 
   }, [ref, repoInfo]);
 
   const branchOptions = branches.data?.map((branch) => ({ label: branch.name, value: branch.name }));
+
+  const workflowInputs = useGithubWorkflowInputs(workflow?.path, ref);
 
   const inputs = workflowInputs?.map((input) => {
     return (

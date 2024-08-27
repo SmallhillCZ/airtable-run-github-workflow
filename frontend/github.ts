@@ -54,8 +54,8 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
   return { data, loading, error };
 }
 
-export function useGithubWorkflowInputs(workflow_path: string | null) {
-  const workflowFile = useGithub(`contents/${workflow_path}`);
+export function useGithubWorkflowInputs(workflow_path: string | null, ref: string) {
+  const workflowFile = useGithub(`contents/${workflow_path}?ref=${ref}`);
   if (!workflowFile.data) return null;
 
   const workflowFileData = atob(workflowFile.data.content);
