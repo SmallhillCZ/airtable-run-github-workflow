@@ -6,6 +6,7 @@
         "react-dom": "^16.9.0"
     },
     "devDependencies": {
+        "@airtable/blocks-cli": "^0.0.76",
         "@types/js-yaml": "^4.0.9",
         "@typescript-eslint/eslint-plugin": "^3.0.2",
         "@typescript-eslint/parser": "^2.15.0",
@@ -16,6 +17,7 @@
     },
     "scripts": {
         "dev": "block run --http",
+        "release": "block release --remote",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx frontend"
     }
 }
