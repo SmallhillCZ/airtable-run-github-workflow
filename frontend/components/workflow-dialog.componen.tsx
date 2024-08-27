@@ -46,7 +46,7 @@ export function WorkFlowDialogComponent({ onClose, workflow }: { onClose: () => 
         ) : (
           <Select
             options={branchOptions}
-            value={repoInfo.data?.default_branch}
+            value={ref ?? repoInfo.data?.default_branch}
             onChange={(newValue) => setRef(newValue)}
             width="100%"
           />
