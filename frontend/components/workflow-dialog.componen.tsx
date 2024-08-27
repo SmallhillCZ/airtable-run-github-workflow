@@ -23,12 +23,13 @@ export function WorkFlowDialogComponent({ onClose, workflow }: { onClose: () => 
     return (
       <FormField key={input.id} label={input.description ?? input.id}>
         <Input
-          value={input.default ?? ""}
-          onChange={(e) =>
+          value={inputsData[input.id] ?? input.default ?? ""}
+          onChange={(e) => {
+            const value = e.target.value;
             setInputsData((prev) => {
-              return { ...prev, [input.id]: e.target.value };
-            })
-          }
+              return { ...prev, [input.id]: value };
+            });
+          }}
         />
       </FormField>
     );
