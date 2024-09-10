@@ -14,8 +14,9 @@ export function fetchGithub(endpoint, init: RequestInit, settings: Settings) {
 
 export function useGithub(endpoint: string | null, init?: RequestInit) {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(null);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState<boolean>(null);
+  const [status, setStatus] = useState<number>(null);
+  const [error, setError] = useState<string>(null);
 
   const [settings] = useSettings();
 
@@ -26,7 +27,7 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
     if (typeof endpoint !== "string") return;
     if (!(settings.repository && settings.token)) return;
 
-    setLoading("loading...");
+    setLoading(true);
     const abortController = new AbortController();
 
     fetchGithub(
@@ -38,8 +39,10 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
     ).then((res) => {
       setLoading(false);
 
+      setStatus(res.status);
+
       if (!res.ok) {
-        setError(res.statusText);
+        setError(res.statusText || `${res.status} Error`);
         setData(null);
       } else {
         res.json().then((data) => setData(data));
@@ -51,7 +54,7 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
     };
   }, [endpoint, init, settings]);
 
-  return { data, loading, error };
+  return { data, loading, error, status };
 }
 
 export function useGithubWorkflowInputs(workflow_path: string | null, ref: string | null) {

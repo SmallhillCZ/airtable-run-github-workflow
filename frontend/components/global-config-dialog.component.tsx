@@ -1,5 +1,6 @@
 import { Button, Dialog, FormField, Heading, Input } from "@airtable/blocks/ui";
 import React, { useState } from "react";
+import { useGithub } from "../github";
 import { useSettings } from "../settings";
 
 export function GlobalConfigDialog({ onClose }: { onClose: () => void }) {
@@ -7,6 +8,8 @@ export function GlobalConfigDialog({ onClose }: { onClose: () => void }) {
 
   const [repository, setRepository] = useState(settings.repository);
   const [token, setToken] = useState(settings.token);
+
+  const repoInfo = useGithub(``);
 
   return (
     <Dialog onClose={() => onClose()} width="320px">
@@ -32,6 +35,8 @@ export function GlobalConfigDialog({ onClose }: { onClose: () => void }) {
           required={true}
         />
       </FormField>
+
+      {repoInfo.error && <p style={{ color: "red" }}>Token or repo name is invalid</p>}
 
       <Button
         onClick={() => {

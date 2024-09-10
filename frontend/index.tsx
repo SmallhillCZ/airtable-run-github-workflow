@@ -2,6 +2,7 @@ import { Box, Button, Heading, initializeBlock, useSettingsButton } from "@airta
 import React, { useEffect, useState } from "react";
 import { GlobalConfigDialog } from "./components/global-config-dialog.component";
 import { WorkflowsListComponent } from "./components/workflows-list.component";
+import { useGithub } from "./github";
 import { useSettings } from "./settings";
 
 function RunWorkflowExtension() {
@@ -13,17 +14,22 @@ function RunWorkflowExtension() {
     setIsSettingsOpen(!isSettingsOpen);
   });
 
-  useEffect(() => {
-    setIsSettingsOpen(!(settings.repository && settings.token));
-  }, [settings]);
+  const repoInfo = useGithub(``);
 
-  // YOUR CODE GOES HERE
+  useEffect(() => {
+    if (!(settings.repository && settings.token)) setIsSettingsOpen(true);
+
+    if (repoInfo.error) {
+      setIsSettingsOpen(true);
+    }
+  }, [settings, repoInfo]);
+
   return (
     <>
       {isSettingsOpen && (
         <GlobalConfigDialog
           onClose={() => {
-            setIsSettingsOpen(false);
+            setTimeout(() => setIsSettingsOpen(false), 500);
           }}
         />
       )}
