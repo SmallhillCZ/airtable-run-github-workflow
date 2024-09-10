@@ -16,7 +16,7 @@
         "typescript": "^3.9.3"
     },
     "scripts": {
-        "dev": "block run --http",
+        "dev": "block run --http --remote",
         "release": "block release --remote",
         "release:all": "bash ./scripts/release-all.sh",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx frontend"
