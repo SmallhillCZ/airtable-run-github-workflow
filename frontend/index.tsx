@@ -1,4 +1,4 @@
-import { Box, Button, Heading, initializeBlock, useSettingsButton } from "@airtable/blocks/ui";
+import { Box, Button, Heading, initializeBlock, Link, useSettingsButton } from "@airtable/blocks/ui";
 import React, { useEffect, useState } from "react";
 import { GlobalConfigDialog } from "./components/global-config-dialog.component";
 import { WorkflowsListComponent } from "./components/workflows-list.component";
@@ -35,7 +35,14 @@ function RunWorkflowExtension() {
       )}
       <Box padding="1em" paddingBottom="0">
         <Heading>Github Workflows</Heading>
-        {settings.repository && <p>Repository: {settings.repository}</p>}
+        {settings.repository && (
+          <p>
+            Repository:&nbsp;
+            <Link href={`https://github.com/${settings.repository}`} target="_blank">
+              {settings.repository}
+            </Link>
+          </p>
+        )}
 
         {!(settings.repository && settings.token) && (
           <p>Use the settings button in the top right of the extension to provide repository credentials.</p>

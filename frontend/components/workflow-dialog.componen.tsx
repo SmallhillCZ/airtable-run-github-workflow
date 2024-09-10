@@ -3,7 +3,13 @@ import React, { useEffect, useState } from "react";
 import { runWorkflow, useGithub, useGithubWorkflowInputs } from "../github";
 import { useSettings } from "../settings";
 
-export function WorkFlowDialogComponent({ onClose, workflow }: { onClose: () => void; workflow: any | null }) {
+export function WorkFlowDialogComponent({
+  onClose,
+  workflow,
+}: {
+  onClose: (workflowStarted?: boolean) => void;
+  workflow: any | null;
+}) {
   const repoInfo = useGithub(``);
   const branches = useGithub(`branches`);
 
@@ -59,7 +65,7 @@ export function WorkFlowDialogComponent({ onClose, workflow }: { onClose: () => 
         <Button
           disabled={branches.loading || repoInfo.loading}
           onClick={() => {
-            runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose());
+            runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose(true));
           }}
         >
           Run workflow
