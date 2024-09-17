@@ -22,15 +22,19 @@ export function WorkFlowDialogComponent({
     if (!ref) setRef(repoInfo.data?.default_branch);
   }, [ref, repoInfo]);
 
-  const branchOptions = branches.data?.map((branch) => ({ label: branch.name, value: branch.name }));
+  const branchOptions = branches.data?.map((branch) => ({ label: branch.name, value: branch.name })) ?? [];
 
   const workflowInputs = useGithubWorkflowInputs(workflow?.path, ref);
 
   const inputs = workflowInputs?.map((input) => {
+    let label = input.description ?? input.id;
+    if (input.required) label += " (required)";
     return (
-      <FormField key={input.id} label={input.description ?? input.id}>
+      <FormField key={input.id} label={label}>
         <Input
+          name={input.id}
           value={inputsData[input.id] ?? input.default ?? ""}
+          required={input.required || false}
           onChange={(e) => {
             const value = e.target.value;
             setInputsData((prev) => {
@@ -60,17 +64,19 @@ export function WorkFlowDialogComponent({
         )}
       </FormField>
 
-      {inputs}
-      <Box paddingTop="1em">
-        <Button
-          disabled={branches.loading || repoInfo.loading}
-          onClick={() => {
-            runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose(true));
-          }}
-        >
-          Run workflow
-        </Button>
-      </Box>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose(true));
+        }}
+      >
+        {inputs}
+        <Box paddingTop="1em">
+          <Button disabled={branches.loading || repoInfo.loading} type="submit">
+            Run workflow
+          </Button>
+        </Box>
+      </form>
     </Dialog>
   );
 }
