@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, FormField, Heading, Input, Select } from "@airtable/blocks/ui";
+import { Box, Button, Dialog, FormField, Heading, Input, Select, SelectButtons } from "@airtable/blocks/ui";
 import React, { useEffect, useState } from "react";
 import { runWorkflow, useGithub, useGithubWorkflowInputs } from "../github";
 import { useSettings } from "../settings";
@@ -17,6 +17,7 @@ export function WorkFlowDialogComponent({
 
   const [ref, setRef] = useState(repoInfo.data?.default_branch);
   const [inputsData, setInputsData] = useState({});
+  const [invalidInputsDialogOpen, setInvalidInputsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!ref) setRef(repoInfo.data?.default_branch);
@@ -26,13 +27,60 @@ export function WorkFlowDialogComponent({
 
   const workflowInputs = useGithubWorkflowInputs(workflow?.path, ref);
 
+  function validateInputs() {
+    console.log("validateInputs", workflowInputs, inputsData);
+    console.log(workflowInputs.every((input) => !input.required || inputsData[input.id] !== ""));
+    return !workflowInputs.some(
+      (input) => input.required && (inputsData[input.id] === undefined || inputsData[input.id] === "")
+    );
+  }
+
   const inputs = workflowInputs?.map((input) => {
     let label = input.description ?? input.id;
     if (input.required) label += " (required)";
+
+    if (input.type === "choice") {
+      const options = input.options?.map((choice) => ({ label: choice, value: choice })) ?? [];
+
+      return (
+        <FormField key={input.id} label={label}>
+          <Select
+            options={options}
+            value={inputsData[input.id] ?? input.default ?? ""}
+            onChange={(newValue) => {
+              setInputsData((prev) => {
+                return { ...prev, [input.id]: newValue };
+              });
+            }}
+          />
+        </FormField>
+      );
+    }
+
+    if (input.type === "boolean") {
+      return (
+        <FormField key={input.id} label={label}>
+          <SelectButtons
+            options={[
+              { label: "Yes", value: "true" },
+              { label: "No", value: "false" },
+            ]}
+            value={inputsData[input.id] ?? input.default ?? "false"}
+            onChange={(newValue) => {
+              setInputsData((prev) => {
+                return { ...prev, [input.id]: newValue };
+              });
+            }}
+          />
+        </FormField>
+      );
+    }
+
     return (
       <FormField key={input.id} label={label}>
         <Input
           name={input.id}
+          type={input.type === "number" ? "number" : "text"}
           value={inputsData[input.id] ?? input.default ?? ""}
           required={input.required || false}
           onChange={(e) => {
@@ -67,16 +115,34 @@ export function WorkFlowDialogComponent({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose(true));
+          if (validateInputs()) {
+            runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose(true));
+          } else {
+            setInvalidInputsDialogOpen(true);
+          }
         }}
       >
         {inputs}
+
         <Box paddingTop="1em">
-          <Button disabled={branches.loading || repoInfo.loading} type="submit">
+          <Button disabled={branches.loading || repoInfo.loading} type="submit" variant="primary">
             Run workflow
           </Button>
         </Box>
       </form>
+
+      {invalidInputsDialogOpen && (
+        <Dialog onClose={() => setInvalidInputsDialogOpen(false)}>
+          <Dialog.CloseButton />
+          <Heading>Invalid inputs</Heading>
+          <Box padding="1em">
+            <p>Please fill in all required inputs before running the workflow.</p>
+          </Box>
+          <Button onClick={() => setInvalidInputsDialogOpen(false)} variant="primary">
+            OK
+          </Button>
+        </Dialog>
+      )}
     </Dialog>
   );
 }
