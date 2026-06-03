@@ -1,6 +1,13 @@
 import { Box, Button, Dialog, FormField, Heading, Input, Select, SelectButtons } from "@airtable/blocks/ui";
 import React, { useEffect, useState } from "react";
-import { runWorkflow, useGithub, useGithubWorkflowInputs } from "../github";
+import {
+  GithubBranch,
+  GithubRepoInfo,
+  GithubWorkflow,
+  runWorkflow,
+  useGithub,
+  useGithubWorkflowInputs,
+} from "../github";
 import { useSettings } from "../settings";
 
 export function WorkFlowDialogComponent({
@@ -8,15 +15,15 @@ export function WorkFlowDialogComponent({
   workflow,
 }: {
   onClose: (workflowStarted?: boolean) => void;
-  workflow: any | null;
+  workflow: GithubWorkflow | null;
 }) {
-  const repoInfo = useGithub(``);
-  const branches = useGithub(`branches`);
+  const repoInfo = useGithub<GithubRepoInfo>(``);
+  const branches = useGithub<GithubBranch[]>(`branches`);
 
   const [settings] = useSettings();
 
-  const [ref, setRef] = useState(repoInfo.data?.default_branch);
-  const [inputsData, setInputsData] = useState({});
+  const [ref, setRef] = useState<string | undefined>(repoInfo.data?.default_branch);
+  const [inputsData, setInputsData] = useState<Record<string, string>>({});
   const [invalidInputsDialogOpen, setInvalidInputsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -25,14 +32,14 @@ export function WorkFlowDialogComponent({
 
   const branchOptions = branches.data?.map((branch) => ({ label: branch.name, value: branch.name })) ?? [];
 
-  const workflowInputs = useGithubWorkflowInputs(workflow?.path, ref);
+  const workflowInputs = useGithubWorkflowInputs(workflow?.path ?? null, ref ?? null);
 
   function validateInputs() {
-    console.log("validateInputs", workflowInputs, inputsData);
-    console.log(workflowInputs.every((input) => !input.required || inputsData[input.id] !== ""));
-    return !workflowInputs.some(
-      (input) => input.required && (inputsData[input.id] === undefined || inputsData[input.id] === "")
-    );
+    return !workflowInputs.some((input) => {
+      if (!input.required) return false;
+      const value = inputsData[input.id] ?? input.default;
+      return value === undefined || value === "";
+    });
   }
 
   const inputs = workflowInputs?.map((input) => {
@@ -49,7 +56,7 @@ export function WorkFlowDialogComponent({
             value={inputsData[input.id] ?? input.default ?? ""}
             onChange={(newValue) => {
               setInputsData((prev) => {
-                return { ...prev, [input.id]: newValue };
+                return { ...prev, [input.id]: String(newValue ?? "") };
               });
             }}
           />
@@ -68,7 +75,7 @@ export function WorkFlowDialogComponent({
             value={inputsData[input.id] ?? input.default ?? "false"}
             onChange={(newValue) => {
               setInputsData((prev) => {
-                return { ...prev, [input.id]: newValue };
+                return { ...prev, [input.id]: String(newValue ?? "") };
               });
             }}
           />
@@ -106,7 +113,7 @@ export function WorkFlowDialogComponent({
           <Select
             options={branchOptions}
             value={ref ?? repoInfo.data?.default_branch}
-            onChange={(newValue) => setRef(newValue)}
+            onChange={(newValue) => setRef(newValue == null ? undefined : String(newValue))}
             width="100%"
           />
         )}
@@ -115,8 +122,12 @@ export function WorkFlowDialogComponent({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (validateInputs()) {
-            runWorkflow(workflow.id, ref, inputsData, settings).then(() => onClose(true));
+          if (validateInputs() && workflow && ref) {
+            const mergedInputs = workflowInputs.reduce<Record<string, string>>((acc, input) => {
+              acc[input.id] = inputsData[input.id] ?? input.default ?? "";
+              return acc;
+            }, {});
+            runWorkflow(workflow.id, ref, mergedInputs, settings).then(() => onClose(true));
           } else {
             setInvalidInputsDialogOpen(true);
           }
@@ -125,7 +136,7 @@ export function WorkFlowDialogComponent({
         {inputs}
 
         <Box paddingTop="1em">
-          <Button disabled={branches.loading || repoInfo.loading} type="submit" variant="primary">
+          <Button disabled={!!(branches.loading || repoInfo.loading)} type="submit" variant="primary">
             Run workflow
           </Button>
         </Box>

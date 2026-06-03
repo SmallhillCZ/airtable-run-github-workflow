@@ -2,8 +2,8 @@ import { useGlobalConfig } from "@airtable/blocks/ui";
 import { useState } from "react";
 
 export interface Settings {
-  repository: string;
-  token: string;
+  repository: string | null;
+  token: string | null;
 }
 
 export function useSettings() {

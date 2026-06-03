@@ -1,14 +1,14 @@
 import { Box } from "@airtable/blocks/ui";
 import React, { useState } from "react";
-import { useGithub } from "../github";
+import { GithubWorkflow, GithubWorkflowsList, useGithub } from "../github";
 import { WorkflowButton } from "./workflow-button";
-import { WorkFlowDialogComponent } from "./workflow-dialog.componen";
+import { WorkFlowDialogComponent } from "./workflow-dialog.component";
 import { WorkflowStartedDialog } from "./workflow-started-dialog.component";
 
 export function WorkflowsListComponent() {
-  const workflows = useGithub(`actions/workflows`);
+  const workflows = useGithub<GithubWorkflowsList>(`actions/workflows`);
 
-  const [openWorkflow, setOpenWorkflow] = useState<any | null>(null);
+  const [openWorkflow, setOpenWorkflow] = useState<GithubWorkflow | null>(null);
 
   const [workflowStartedDialogOpen, setWorkflowStartedDialogOpen] = useState(false);
 

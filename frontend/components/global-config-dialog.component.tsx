@@ -6,8 +6,8 @@ import { useSettings } from "../settings";
 export function GlobalConfigDialog({ onClose }: { onClose: () => void }) {
   const [settings, setSettings] = useSettings();
 
-  const [repository, setRepository] = useState(settings.repository);
-  const [token, setToken] = useState(settings.token);
+  const [repository, setRepository] = useState<string>(settings.repository ?? "");
+  const [token, setToken] = useState<string>(settings.token ?? "");
 
   const repoInfo = useGithub(``);
 

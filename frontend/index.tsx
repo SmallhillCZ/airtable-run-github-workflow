@@ -2,7 +2,7 @@ import { Box, Button, Heading, initializeBlock, Link, useSettingsButton } from "
 import React, { useEffect, useState } from "react";
 import { GlobalConfigDialog } from "./components/global-config-dialog.component";
 import { WorkflowsListComponent } from "./components/workflows-list.component";
-import { useGithub } from "./github";
+import { GithubRepoInfo, useGithub } from "./github";
 import { useSettings } from "./settings";
 
 function RunWorkflowExtension() {
@@ -14,7 +14,7 @@ function RunWorkflowExtension() {
     setIsSettingsOpen(!isSettingsOpen);
   });
 
-  const repoInfo = useGithub(``);
+  const repoInfo = useGithub<GithubRepoInfo>(``);
 
   useEffect(() => {
     if (!(settings.repository && settings.token)) setIsSettingsOpen(true);

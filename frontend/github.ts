@@ -2,7 +2,52 @@ import yaml from "js-yaml";
 import { useEffect, useState } from "react";
 import { Settings, useSettings } from "./settings";
 
-export function fetchGithub(endpoint, init: RequestInit, settings: Settings) {
+export interface GithubRepoInfo {
+  default_branch: string;
+  [key: string]: any;
+}
+
+export interface GithubBranch {
+  name: string;
+  [key: string]: any;
+}
+
+export interface GithubWorkflow {
+  id: number;
+  name: string;
+  path: string;
+  [key: string]: any;
+}
+
+export interface GithubWorkflowsList {
+  workflows: GithubWorkflow[];
+  [key: string]: any;
+}
+
+export interface GithubContentFile {
+  content: string;
+  [key: string]: any;
+}
+
+export type WorkflowInputType = "choice" | "boolean" | "number" | "string" | "environment";
+
+export interface WorkflowInput {
+  id: string;
+  description?: string;
+  required?: boolean;
+  default?: string;
+  type?: WorkflowInputType;
+  options?: string[];
+}
+
+export interface UseGithubResult<T> {
+  data: T | null;
+  loading: boolean | null;
+  error: string | null;
+  status: number | null;
+}
+
+export function fetchGithub(endpoint: string, init: RequestInit, settings: Settings) {
   return fetch(`https://api.github.com/repos/${settings.repository}${endpoint ? "/" + endpoint : ""}`, {
     ...init,
     headers: {
@@ -12,11 +57,11 @@ export function fetchGithub(endpoint, init: RequestInit, settings: Settings) {
   });
 }
 
-export function useGithub(endpoint: string | null, init?: RequestInit) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState<boolean>(null);
-  const [status, setStatus] = useState<number>(null);
-  const [error, setError] = useState<string>(null);
+export function useGithub<T = any>(endpoint: string | null, init?: RequestInit): UseGithubResult<T> {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [settings] = useSettings();
 
@@ -35,7 +80,7 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
       {
         signal: abortController.signal,
       },
-      settings
+      settings,
     ).then((res) => {
       setLoading(false);
 
@@ -45,7 +90,7 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
         setError(res.statusText || `${res.status} Error`);
         setData(null);
       } else {
-        res.json().then((data) => setData(data));
+        res.json().then((data: T) => setData(data));
         setError(null);
       }
     });
@@ -57,23 +102,31 @@ export function useGithub(endpoint: string | null, init?: RequestInit) {
   return { data, loading, error, status };
 }
 
-export function useGithubWorkflowInputs(workflow_path: string | null, ref: string | null) {
-  const workflowFile = useGithub(workflow_path && ref ? `contents/${workflow_path}?ref=${ref}` : null);
-  if (!workflowFile.data) return null;
+export function useGithubWorkflowInputs(workflow_path: string | null, ref: string | null): WorkflowInput[] {
+  const workflowFile = useGithub<GithubContentFile>(
+    workflow_path && ref ? `contents/${workflow_path}?ref=${ref}` : null,
+  );
+  if (!workflowFile.data) return [];
 
   const workflowFileData = atob(workflowFile.data.content);
 
   const workflow = yaml.load(workflowFileData) as any;
 
-  const inputs =
-    typeof workflow?.on?.workflow_dispatch?.inputs === "object"
-      ? Object.entries(workflow?.on?.workflow_dispatch?.inputs).map(([id, input]) => ({ id, ...(input as any) }))
+  const rawInputs = workflow?.on?.workflow_dispatch?.inputs;
+  const inputs: WorkflowInput[] =
+    rawInputs && typeof rawInputs === "object"
+      ? Object.entries(rawInputs).map(([id, input]) => ({ id, ...(input as Omit<WorkflowInput, "id">) }))
       : [];
 
   return inputs;
 }
 
-export async function runWorkflow(workflow_id: string, ref: string, inputs: any, settings: Settings) {
+export async function runWorkflow(
+  workflow_id: number | string,
+  ref: string,
+  inputs: Record<string, string>,
+  settings: Settings,
+) {
   const body = { ref, inputs };
 
   const res = await fetchGithub(
@@ -85,7 +138,7 @@ export async function runWorkflow(workflow_id: string, ref: string, inputs: any,
         "Content-Type": "application/json",
       },
     },
-    settings
+    settings,
   );
 
   if (!res.ok) {
