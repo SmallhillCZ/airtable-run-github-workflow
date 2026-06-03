@@ -1,24 +1,24 @@
 {
-    "dependencies": {
-        "@airtable/blocks": "1.18.1",
-        "js-yaml": "^4.1.0",
-        "react": "^16.9.0",
-        "react-dom": "^16.9.0"
-    },
-    "devDependencies": {
-        "@airtable/blocks-cli": "^0.0.76",
-        "@types/js-yaml": "^4.0.9",
-        "@typescript-eslint/eslint-plugin": "^3.0.2",
-        "@typescript-eslint/parser": "^2.15.0",
-        "eslint": "^6.3.0",
-        "eslint-plugin-react": "^7.14.3",
-        "eslint-plugin-react-hooks": "^2.0.1",
-        "typescript": "^3.9.3"
-    },
-    "scripts": {
-        "dev": "block run --http --remote",
-        "release": "block release --remote",
-        "release:all": "bash ./scripts/release-all.sh",
-        "lint": "eslint --ext .js,.jsx,.ts,.tsx frontend"
-    }
+  "dependencies": {
+    "@airtable/blocks": "1.19.0",
+    "js-yaml": "^4.2.0",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
+  },
+  "devDependencies": {
+    "@airtable/blocks-cli": "^3.0.3",
+    "@types/js-yaml": "^4.0.9",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
+    "eslint": "^9.7",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "dev": "block run --http --remote",
+    "release": "block release --remote",
+    "release:all": "bash ./scripts/release-all.sh",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx frontend"
+  }
 }
